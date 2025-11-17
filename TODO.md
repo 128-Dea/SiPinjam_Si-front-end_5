@@ -1,0 +1,8 @@
+- Update AuthResult to include redirectTo
+- Update AuthApi login to extract redirect_to from response
+- Update AuthApi register to compute redirectTo based on role
+- Update Pengguna.fromJson to include nim, jurusan
+- Add nim, jurusan fields to RegisterPage form
+- Update AuthApi register method to include nim, jurusan
+- Update LoginPage navigation to handle redirectTo (to PenggunaPage)
+- Update RegisterPage navigation to handle redirectTo (to PenggunaPage)
