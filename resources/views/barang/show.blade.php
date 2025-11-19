@@ -65,7 +65,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Pinjam Barang</h5>
-                            <a href="{{ route('peminjaman.create', ['barang_id' => $barang->id ?? $barang->id_barang]) }}" class="btn btn-success btn-lg w-100">
+                            <a href="{{ route('mahasiswa.peminjaman.create', ['barang_id' => $barang->id ?? $barang->id_barang]) }}" class="btn btn-success btn-lg w-100">
                                 Pinjam Sekarang
                             </a>
                         </div>

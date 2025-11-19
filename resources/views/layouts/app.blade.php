@@ -573,65 +573,60 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('kategori.*') ? 'active' : '' }}" href="{{ route('kategori.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.kategori.*') ? 'active' : '' }}" href="{{ route('petugas.kategori.index') }}">
                             <i class="fas fa-tags"></i>
                             <span>Kategori</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active' : '' }}" href="{{ route('peminjaman.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.peminjaman.*') ? 'active' : '' }}" href="{{ route('petugas.peminjaman.index') }}">
                             <i class="fas fa-hand-holding"></i>
                             <span>Peminjaman</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('keluhan.*') ? 'active' : '' }}" href="{{ route('keluhan.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.keluhan.*') ? 'active' : '' }}" href="{{ route('petugas.keluhan.index') }}">
                             <i class="fas fa-exclamation-triangle"></i>
                             <span>Keluhan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('service.*') ? 'active' : '' }}" href="{{ route('service.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.service.*') ? 'active' : '' }}" href="{{ route('petugas.service.index') }}">
                             <i class="fas fa-tools"></i>
                             <span>Service</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('pengembalian.*') ? 'active' : '' }}" href="{{ route('pengembalian.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.pengembalian.*') ? 'active' : '' }}" href="{{ route('petugas.pengembalian.index') }}">
                             <i class="fas fa-undo"></i>
                             <span>Pengembalian</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('perpanjangan.*') ? 'active' : '' }}" href="{{ route('perpanjangan.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.perpanjangan.*') ? 'active' : '' }}" href="{{ route('petugas.perpanjangan.index') }}">
                             <i class="fas fa-clock"></i>
                             <span>Perpanjangan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('denda.*') ? 'active' : '' }}" href="{{ route('denda.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.denda.*') ? 'active' : '' }}" href="{{ route('petugas.denda.index') }}">
                             <i class="fas fa-money-bill-wave"></i>
                             <span>Denda</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('serahterima.*') ? 'active' : '' }}" href="{{ route('serahterima.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.serahterima.*') ? 'active' : '' }}" href="{{ route('petugas.serahterima.index') }}">
                             <i class="fas fa-handshake"></i>
                             <span>Serah Terima</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('notifikasi.*') ? 'active' : '' }}" href="{{ route('notifikasi.index') }}">
+                        <a class="nav-link {{ request()->routeIs('petugas.notifikasi.*') ? 'active' : '' }}" href="{{ route('petugas.notifikasi.index') }}">
                             <i class="fas fa-bell"></i>
                             <span>Notifikasi</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('riwayat.*') ? 'active' : '' }}" href="{{ route('riwayat.index') }}">
-                            <i class="fas fa-history"></i>
-                            <span>Riwayat</span>
-                        </a>
-                    </li>
+
                 </ul>
             </div>
         </nav>
@@ -730,25 +725,25 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active' : '' }}" href="{{ route('peminjaman.index') }}">
+                        <a class="nav-link {{ request()->routeIs('mahasiswa.peminjaman.*') ? 'active' : '' }}" href="{{ route('mahasiswa.peminjaman.index') }}">
                             <i class="fas fa-hand-holding"></i>
                             <span>Peminjaman</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('keluhan.*') ? 'active' : '' }}" href="{{ route('keluhan.index') }}">
+                        <a class="nav-link {{ request()->routeIs('mahasiswa.pengembalian.*') ? 'active' : '' }}" href="{{ route('mahasiswa.pengembalian.create') }}">
+                            <i class="fas fa-undo"></i>
+                            <span>Pengembalian</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('mahasiswa.keluhan.*') ? 'active' : '' }}" href="{{ route('mahasiswa.keluhan.index') }}">
                             <i class="fas fa-exclamation-triangle"></i>
                             <span>Keluhan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('barang.*') ? 'active' : '' }}" href="{{ route('barang.index') }}">
-                            <i class="fas fa-box"></i>
-                            <span>Barang</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('riwayat.*') ? 'active' : '' }}" href="{{ route('riwayat.index') }}">
+                        <a class="nav-link {{ request()->routeIs('mahasiswa.riwayat.*') ? 'active' : '' }}" href="{{ route('mahasiswa.riwayat.index') }}">
                             <i class="fas fa-history"></i>
                             <span>Riwayat</span>
                         </a>

@@ -13,8 +13,8 @@
             <p class="text-muted mb-0">Ringkasan aktivitas peminjaman pribadi Anda</p>
         </div>
         <div class="text-end">
-            <small class="text-muted d-block">{{ now()->format('l, d F Y') }}</small>
-            <small class="text-muted">{{ now()->format('H:i') }}</small>
+            <small class="text-muted d-block" id="current-date">{{ now()->format('l, d F Y') }}</small>
+            <small class="text-muted" id="current-time">{{ now()->format('H:i') }}</small>
         </div>
     </div>
 
@@ -73,27 +73,37 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            <a href="{{ route('peminjaman.create') }}" class="btn btn-modern btn-primary w-100 d-flex align-items-center justify-content-center">
+                            <a href="{{ route('mahasiswa.peminjaman.create') }}" class="btn btn-modern btn-primary w-100 d-flex align-items-center justify-content-center">
                                 <i class="fas fa-plus me-2"></i>
                                 <span>Ajukan Peminjaman</span>
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('keluhan.create') }}" class="btn btn-modern btn-warning w-100 d-flex align-items-center justify-content-center">
+                            <a href="{{ route('mahasiswa.keluhan.create') }}" class="btn btn-modern btn-warning w-100 d-flex align-items-center justify-content-center">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 <span>Buat Keluhan</span>
                             </a>
                         </div>
                         <div class="col-12">
-                            <a href="{{ route('peminjaman.index') }}" class="btn btn-modern btn-info w-100 d-flex align-items-center justify-content-center">
+                            <a href="{{ route('mahasiswa.peminjaman.index') }}" class="btn btn-modern btn-info w-100 d-flex align-items-center justify-content-center">
                                 <i class="fas fa-list me-2"></i>
                                 <span>Lihat Peminjaman</span>
                             </a>
                         </div>
+
+                        {{-- Tombol tambahan: Pengembalian Barang --}}
+                        <div class="col-12">
+                            <a href="{{ route('mahasiswa.pengembalian.create') }}" class="btn btn-modern btn-outline-primary w-100 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-undo me-2"></i>
+                                <span>Pengembalian Barang</span>
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-lg-6 mb-4">
             <div class="card card-modern h-100">
                 <div class="card-header bg-white border-0">
@@ -104,13 +114,13 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            <a href="{{ route('riwayat.index') }}" class="btn btn-modern btn-success w-100 d-flex align-items-center justify-content-center">
+                            <a href="{{ route('mahasiswa.riwayat.index') }}" class="btn btn-modern btn-success w-100 d-flex align-items-center justify-content-center">
                                 <i class="fas fa-history me-2"></i>
                                 <span>Riwayat</span>
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('keluhan.index') }}" class="btn btn-modern btn-secondary w-100 d-flex align-items-center justify-content-center">
+                            <a href="{{ route('mahasiswa.keluhan.index') }}" class="btn btn-modern btn-secondary w-100 d-flex align-items-center justify-content-center">
                                 <i class="fas fa-comments me-2"></i>
                                 <span>Keluhan Saya</span>
                             </a>
@@ -148,10 +158,13 @@
                             @endif
                             <div class="flex-grow-1">
                                 <h6 class="mb-1">{{ $peminjaman->barang->nama_barang ?? '-' }}</h6>
-                                <small class="text-muted d-block">Kode: {{ $peminjaman->barang->kode_barang ?? '-' }} | Kategori: {{ $peminjaman->barang->kategori->nama_kategori ?? '-' }}</small>
                                 <small class="text-muted d-block">
-                                    Pinjam: {{ \Illuminate\Support\Carbon::parse($peminjaman->waktu_awal)->format('d M Y H:i') }} |
-                                    Kembali: {{ \Illuminate\Support\Carbon::parse($peminjaman->waktu_akhir)->format('d M Y H:i') }}
+                                    Kode: {{ $peminjaman->barang->kode_barang ?? '-' }} |
+                                    Kategori: {{ $peminjaman->barang->kategori->nama_kategori ?? '-' }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    Pinjam: {{ \Carbon\Carbon::parse($peminjaman->waktu_awal)->format('d M Y H:i') }} |
+                                    Kembali: {{ \Carbon\Carbon::parse($peminjaman->waktu_akhir)->format('d M Y H:i') }}
                                 </small>
                             </div>
                             <span class="badge bg-success">{{ $peminjaman->status }}</span>
@@ -165,6 +178,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-lg-4 mb-4">
             <div class="card card-modern">
                 <div class="card-header bg-white border-0">
@@ -196,29 +210,28 @@
 </div>
 @endsection
 
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    const dateEl = document.getElementById('current-date');
+    const timeEl = document.getElementById('current-time');
+
     function updateTime() {
         const now = new Date();
-        const options = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        };
-
-        document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', options);
-        document.getElementById('current-time').textContent = now.toLocaleTimeString('id-ID', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString('id-ID', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString('id-ID', {
+                hour12: false, hour: '2-digit', minute: '2-digit'
+            });
+        }
     }
 
-    // Update time immediately
     updateTime();
-
-    // Update time every second
     setInterval(updateTime, 1000);
 });
 </script>
+@endpush

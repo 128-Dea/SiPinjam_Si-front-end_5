@@ -13,16 +13,28 @@ class PengembalianController extends Controller
 {
     public function index()
     {
-        $pengembalian = Pengembalian::with(['peminjaman.pengguna', 'peminjaman.barang'])->orderByDesc('waktu_pengembalian')->get();
+        // Dipakai PETUGAS: lihat semua pengembalian
+        $pengembalian = Pengembalian::with(['peminjaman.pengguna', 'peminjaman.barang'])
+            ->orderByDesc('waktu_pengembalian')
+            ->get();
 
         return view('pengembalian.index', compact('pengembalian'));
     }
 
     public function create()
     {
-        $peminjaman = Peminjaman::with('barang')
-            ->whereDoesntHave('pengembalian')
-            ->get();
+        // Dipakai MAHASISWA: form pengembalian
+        $query = Peminjaman::with(['barang', 'pengguna'])
+            ->whereDoesntHave('pengembalian'); // hanya yang belum dikembalikan
+
+        // Filter supaya mahasiswa cuma lihat peminjaman miliknya
+        if (auth()->user()->role === 'mahasiswa') {
+            $query->whereHas('pengguna', function ($q) {
+                $q->where('id_pengguna', auth()->id()); // sesuaikan jika primary key pengguna beda
+            });
+        }
+
+        $peminjaman = $query->get();
 
         return view('pengembalian.create', compact('peminjaman'));
     }
@@ -30,55 +42,63 @@ class PengembalianController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'id_peminjaman' => 'required|exists:peminjaman,id_peminjaman',
+            'id_peminjaman'      => 'required|exists:peminjaman,id_peminjaman',
             'waktu_pengembalian' => 'required|date',
-            'catatan' => 'nullable|string',
-            'biaya_rusak' => 'nullable|numeric|min:0',
-            'biaya_hilang' => 'nullable|numeric|min:0',
+            'catatan'            => 'nullable|string',
+            'biaya_rusak'        => 'nullable|numeric|min:0',
+            'biaya_hilang'       => 'nullable|numeric|min:0',
         ]);
 
-        $peminjaman = Peminjaman::with('barang')->findOrFail($data['id_peminjaman']);
+        $peminjaman = Peminjaman::with(['barang', 'pengguna'])->findOrFail($data['id_peminjaman']);
+
+        // Kalau mahasiswa, pastikan peminjaman itu milik dia
+        if (auth()->user()->role === 'mahasiswa') {
+            if (!$peminjaman->pengguna || $peminjaman->pengguna->id !== auth()->id()) {
+                abort(403, 'Anda tidak boleh mengembalikan peminjaman milik orang lain.');
+            }
+        }
 
         DB::transaction(function () use ($data, $peminjaman) {
             $pengembalian = Pengembalian::create([
-                'id_peminjaman' => $data['id_peminjaman'],
+                'id_peminjaman'      => $data['id_peminjaman'],
                 'waktu_pengembalian' => $data['waktu_pengembalian'],
-                'catatan' => $data['catatan'],
+                'catatan'            => $data['catatan'] ?? null,
             ]);
 
             // Hitung denda terlambat
-            $waktuAkhir = strtotime($peminjaman->waktu_akhir);
+            $waktuAkhir        = strtotime($peminjaman->waktu_akhir);
             $waktuPengembalian = strtotime($data['waktu_pengembalian']);
-            $terlambatMenit = max(0, ($waktuPengembalian - $waktuAkhir) / 60);
-            $dendaTerlambat = $terlambatMenit * 1000; // 1000 per menit
+            $terlambatMenit    = max(0, ($waktuPengembalian - $waktuAkhir) / 60);
+            $dendaTerlambat    = $terlambatMenit * 1000; // 1000 per menit
 
             $totalDenda = $dendaTerlambat;
 
-            if ($data['biaya_rusak']) {
+            if (!empty($data['biaya_rusak'])) {
                 $totalDenda += $data['biaya_rusak'];
             }
 
-            if ($data['biaya_hilang']) {
+            if (!empty($data['biaya_hilang'])) {
                 $totalDenda += $data['biaya_hilang'];
             }
 
             if ($totalDenda > 0) {
                 Denda::create([
-                    'id_peminjaman' => $peminjaman->id_peminjaman,
-                    'jenis' => 'pengembalian',
-                    'total_denda' => $totalDenda,
+                    'id_peminjaman'     => $peminjaman->id_peminjaman,
+                    'jenis'             => 'pengembalian',
+                    'total_denda'       => $totalDenda,
                     'status_pembayaran' => 'belum_dibayar',
-                    'keterangan' => 'Denda pengembalian barang',
+                    'keterangan'        => 'Denda pengembalian barang',
                 ]);
             }
 
-            // Update QR menjadi tidak aktif
+            // Nonaktifkan QR
             if ($peminjaman->qr) {
                 $peminjaman->qr->update(['is_active' => false]);
             }
 
-            // Update status peminjaman dan barang
+            // Update status peminjaman & barang
             $peminjaman->update(['status' => 'selesai']);
+
             if ($peminjaman->barang) {
                 $peminjaman->barang->increment('stok');
                 $peminjaman->barang->refresh();
@@ -90,13 +110,23 @@ class PengembalianController extends Controller
                 }
             }
 
+            // Simpan ke tabel riwayat
             Riwayat::create([
                 'id_pengembalian' => $pengembalian->id_pengembalian,
-                'serah_terima' => 'tidak',
-                'denda' => $totalDenda,
+                'serah_terima'    => 'tidak',
+                'denda'           => $totalDenda,
             ]);
         });
 
-        return redirect()->route('pengembalian.index')->with('success', 'Pengembalian berhasil diproses');
+        // Redirect sesuai role
+        if (auth()->user()->role === 'mahasiswa') {
+            return redirect()
+                ->route('mahasiswa.dashboard')
+                ->with('success', 'Pengembalian berhasil dikirim, menunggu verifikasi petugas.');
+        }
+
+        return redirect()
+            ->route('petugas.pengembalian.index')
+            ->with('success', 'Pengembalian berhasil diproses');
     }
 }

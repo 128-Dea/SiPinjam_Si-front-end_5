@@ -6,7 +6,7 @@
         <h1 class="h3 mb-1">Daftar Peminjaman</h1>
         <small class="text-muted">Pantau semua permintaan peminjaman Anda</small>
     </div>
-    <a href="{{ route('peminjaman.create') }}" class="btn btn-primary">Tambah Peminjaman</a>
+    <a href="{{ route('mahasiswa.peminjaman.create') }}" class="btn btn-primary">Tambah Peminjaman</a>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -36,7 +36,7 @@
                             </span>
                         </td>
                         <td>
-                            <a href="{{ route('peminjaman.show', $item->id_peminjaman) }}" class="btn btn-sm btn-outline-primary">Detail</a>
+                            <a href="{{ route('mahasiswa.peminjaman.show', $item->id_peminjaman) }}" class="btn btn-sm btn-outline-primary">Detail</a>
                         </td>
                     </tr>
                 @empty

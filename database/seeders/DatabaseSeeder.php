@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         // Buat akun petugas/admin
-        User::firstOrCreate([
+        $admin = User::firstOrCreate([
             'email' => 'admin@petugas.com'
         ], [
             'name' => 'Admin Petugas',
@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Buat akun mahasiswa test
-        User::firstOrCreate([
+        $testUser = User::firstOrCreate([
             'email' => 'test@example.com'
         ], [
             'name' => 'Test User',
@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Buat akun petugas dengan email rin@admin.ac.id
-        User::firstOrCreate([
+        $rinAdmin = User::firstOrCreate([
             'email' => 'rin@admin.ac.id'
         ], [
             'name' => 'Rin Admin',
@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Buat akun mahasiswa dengan email yang sesuai domain baru
-        User::firstOrCreate([
+        $mahasiswa = User::firstOrCreate([
             'email' => 'mahasiswa@mhs.unesa.ac.id'
         ], [
             'name' => 'Mahasiswa Test',
@@ -57,5 +57,18 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'mahasiswa',
         ]);
+
+        // Sinkronisasi semua user ke tabel pengguna
+        $users = User::all();
+        foreach ($users as $user) {
+            \App\Models\Pengguna::firstOrCreate([
+                'email' => $user->email
+            ], [
+                'nama' => $user->name,
+                'email' => $user->email,
+                'nomor_hp' => null,
+                'role' => $user->role,
+            ]);
+        }
     }
 }

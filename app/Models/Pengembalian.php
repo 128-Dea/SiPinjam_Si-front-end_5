@@ -20,6 +20,10 @@ class Pengembalian extends Model
         'catatan',
     ];
 
+    protected $casts = [
+        'waktu_pengembalian' => 'datetime',
+    ];
+
     public function peminjaman(): BelongsTo
     {
         return $this->belongsTo(Peminjaman::class, 'id_peminjaman', 'id_peminjaman');

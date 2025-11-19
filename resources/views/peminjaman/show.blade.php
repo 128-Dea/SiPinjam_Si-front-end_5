@@ -6,7 +6,7 @@
         <h1 class="h3 mb-1">Detail Peminjaman</h1>
         <small class="text-muted">Informasi lengkap peminjaman #{{ $peminjaman->id_peminjaman }}</small>
     </div>
-    <a href="{{ route('peminjaman.index') }}" class="btn btn-outline-secondary">Kembali</a>
+    <a href="{{ route('mahasiswa.peminjaman.index') }}" class="btn btn-outline-secondary">Kembali</a>
 </div>
 
 <div class="row g-4">

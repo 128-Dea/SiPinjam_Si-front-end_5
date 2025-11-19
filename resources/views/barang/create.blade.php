@@ -6,7 +6,7 @@
     <a href="{{ route('barang.index') }}" class="btn btn-outline-secondary">Kembali</a>
 </div>
 
-<form method="POST" action="{{ route('barang.store') }}" class="card border-0 shadow-sm" enctype="multipart/form-data">
+<form method="POST" action="{{ route('petugas.barang.store') }}" class="card border-0 shadow-sm" enctype="multipart/form-data">
     @csrf
     <div class="card-body">
         <div class="mb-3">

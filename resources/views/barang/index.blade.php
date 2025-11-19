@@ -11,7 +11,7 @@
             <h1 class="h3 mb-1">Manajemen Barang</h1>
             <small class="text-muted">Kelola stok dan status barang kampus</small>
         </div>
-        <a href="{{ route('barang.create') }}" class="btn btn-primary">Tambah Barang</a>
+        <a href="{{ route('petugas.barang.create') }}" class="btn btn-primary">Tambah Barang</a>
     </div>
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
@@ -45,8 +45,8 @@
                             <td>{{ ucfirst($item->status ?? 'tersedia') }}</td>
                             <td>Rp {{ number_format($item->harga ?? 0,0,',','.') }}</td>
                             <td class="text-end">
-                                <a href="{{ route('barang.edit', $item->id_barang) }}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
-                                <form action="{{ route('barang.destroy', $item->id_barang) }}" method="POST" class="d-inline">
+                                <a href="{{ route('petugas.barang.edit', $item->id_barang) }}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                <form action="{{ route('petugas.barang.destroy', $item->id_barang) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus barang ini?')">
