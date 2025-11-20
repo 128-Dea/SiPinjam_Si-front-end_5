@@ -2,132 +2,128 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Denda;
+use App\Models\Barang;
 use App\Models\Peminjaman;
-use App\Models\Pengembalian;
-use App\Models\Riwayat;
+use App\Models\Qr;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-class PengembalianController extends Controller
+class PeminjamanController extends Controller
 {
     public function index()
     {
-        // Dipakai oleh PETUGAS: lihat semua pengembalian
-        $pengembalian = Pengembalian::with(['peminjaman.pengguna', 'peminjaman.barang'])
-            ->orderByDesc('waktu_pengembalian')
-            ->get();
+        $user = auth()->user();
 
-        return view('pengembalian.index', compact('pengembalian'));
-    }
+        $query = Peminjaman::with(['barang', 'pengguna', 'qr'])
+            ->orderByDesc('waktu_awal');
 
-    public function create()
-    {
-        // Form pengembalian (dipakai MAHASISWA)
-        $query = Peminjaman::with(['barang', 'pengguna'])
-            ->whereDoesntHave('pengembalian'); // hanya yang belum dikembalikan
-
-        // Kalau role mahasiswa: hanya peminjaman miliknya
-        if (auth()->user()->role === 'mahasiswa') {
-            $query->whereHas('pengguna', function ($q) {
-                $q->where('id', auth()->id());
-            });
+        if ($user && $user->role === 'mahasiswa') {
+            $query->where('id_pengguna', $user->id);
         }
 
         $peminjaman = $query->get();
 
-        return view('pengembalian.create', compact('peminjaman'));
+        return view('peminjaman.index', compact('peminjaman'));
+    }
+
+    public function create()
+    {
+        $user = auth()->user();
+        abort_unless($user && $user->role === 'mahasiswa', 403);
+
+        $barang = Barang::with('kategori')
+            ->where(function ($q) {
+                $q->whereNull('stok')->orWhere('stok', '>', 0);
+            })
+            ->where('status', 'tersedia')
+            ->get();
+
+        return view('peminjaman.create', compact('barang'));
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        abort_unless($user && $user->role === 'mahasiswa', 403);
+
         $data = $request->validate([
-            'id_peminjaman'      => 'required|exists:peminjaman,id_peminjaman',
-            'waktu_pengembalian' => 'required|date',
-            'catatan'            => 'nullable|string',
-            'biaya_rusak'        => 'nullable|numeric|min:0',
-            'biaya_hilang'       => 'nullable|numeric|min:0',
+            'id_barang'   => 'required|exists:barang,id_barang',
+            'waktu_awal'  => 'required|date',
+            'waktu_akhir' => 'required|date|after:waktu_awal',
+            'alasan'      => 'nullable|string',
         ]);
 
-        $peminjaman = Peminjaman::with(['barang', 'pengguna'])->findOrFail($data['id_peminjaman']);
+        $peminjaman = Peminjaman::create([
+            'id_pengguna' => $user->id,
+            'id_barang'   => $data['id_barang'],
+            'waktu_awal'  => $data['waktu_awal'],
+            'waktu_akhir' => $data['waktu_akhir'],
+            'alasan'      => $data['alasan'] ?? '',
+            'status'      => 'berlangsung',
+        ]);
 
-        // Kalau mahasiswa, pastikan peminjaman itu benar punya dia
-        if (auth()->user()->role === 'mahasiswa') {
-            // SESUAIKAN jika id-nya bukan "id"
-            if (!$peminjaman->pengguna || $peminjaman->pengguna->id !== auth()->id()) {
-                abort(403, 'Anda tidak boleh mengembalikan peminjaman milik orang lain.');
-            }
-        }
+        $this->updateBarangSetelahPinjam($peminjaman->barang);
 
-        DB::transaction(function () use ($data, $peminjaman) {
-            $pengembalian = Pengembalian::create([
-                'id_peminjaman'      => $data['id_peminjaman'],
-                'waktu_pengembalian' => $data['waktu_pengembalian'],
-                'catatan'            => $data['catatan'] ?? null,
-            ]);
-
-            // Hitung denda terlambat
-            $waktuAkhir        = strtotime($peminjaman->waktu_akhir);
-            $waktuPengembalian = strtotime($data['waktu_pengembalian']);
-            $terlambatMenit    = max(0, ($waktuPengembalian - $waktuAkhir) / 60);
-            $dendaTerlambat    = $terlambatMenit * 1000; // 1000 per menit
-
-            $totalDenda = $dendaTerlambat;
-
-            if (!empty($data['biaya_rusak'])) {
-                $totalDenda += $data['biaya_rusak'];
-            }
-
-            if (!empty($data['biaya_hilang'])) {
-                $totalDenda += $data['biaya_hilang'];
-            }
-
-            if ($totalDenda > 0) {
-                Denda::create([
-                    'id_peminjaman'     => $peminjaman->id_peminjaman,
-                    'jenis'             => 'pengembalian',
-                    'total_denda'       => $totalDenda,
-                    'status_pembayaran' => 'belum_dibayar',
-                    'keterangan'        => 'Denda pengembalian barang',
-                ]);
-            }
-
-            // Nonaktifkan QR
-            if ($peminjaman->qr) {
-                $peminjaman->qr->update(['is_active' => false]);
-            }
-
-            // Update status peminjaman & barang
-            $peminjaman->update(['status' => 'selesai']);
-
-            if ($peminjaman->barang) {
-                $peminjaman->barang->increment('stok');
-                $peminjaman->barang->refresh();
-
-                if (in_array($peminjaman->barang->status, ['tersedia', 'dipinjam'])) {
-                    $peminjaman->barang->update([
-                        'status' => $peminjaman->barang->stok > 0 ? 'tersedia' : 'dipinjam',
-                    ]);
-                }
-            }
-
-            // Simpan ke tabel riwayat
-            Riwayat::create([
-                'id_pengembalian' => $pengembalian->id_pengembalian,
-                'serah_terima'    => 'tidak',
-                'denda'           => $totalDenda,
-            ]);
-        });
-
-        // Redirect sesuai role
-        if (auth()->user()->role === 'mahasiswa') {
-            return redirect()
-                ->route('mahasiswa.riwayat.index')
-                ->with('success', 'Pengembalian berhasil dikirim, menunggu verifikasi petugas.');
-        }
+        Qr::create([
+            'qr_code'         => $this->generateQrCode($peminjaman->id_peminjaman),
+            'jenis_transaksi' => 'peminjaman',
+            'id_peminjaman'   => $peminjaman->id_peminjaman,
+            'is_active'       => true,
+        ]);
 
         return redirect()
-            ->route('petugas.pengembalian.index')
-            ->with('success', 'Pengembalian berhasil diproses');
+            ->route('mahasiswa.peminjaman.show', $peminjaman->id_peminjaman)
+            ->with('success', 'Peminjaman berhasil dibuat.');
+    }
+
+    public function show(Peminjaman $peminjaman)
+    {
+        $user = auth()->user();
+
+        if ($user && $user->role === 'mahasiswa' && $peminjaman->id_pengguna !== $user->id) {
+            abort(403);
+        }
+
+        $peminjaman->load(['barang', 'pengguna', 'qr', 'keluhan', 'perpanjangan', 'serahTerima']);
+
+        return view('peminjaman.show', compact('peminjaman'));
+    }
+
+    public function destroy(Peminjaman $peminjaman)
+    {
+        $user = auth()->user();
+        abort_unless($user && $user->role === 'petugas', 403);
+
+        $peminjaman->delete();
+
+        return redirect()
+            ->route('petugas.peminjaman.index')
+            ->with('success', 'Peminjaman berhasil dihapus.');
+    }
+
+    protected function generateQrCode(int $id): string
+    {
+        return 'PINJ-' . $id . '-' . Str::upper(Str::random(6));
+    }
+
+    protected function updateBarangSetelahPinjam(?Barang $barang): void
+    {
+        if (!$barang) {
+            return;
+        }
+
+        // Kurangi stok jika kolom tersedia, lalu perbarui status sederhana.
+        if (!is_null($barang->stok)) {
+            $barang->decrement('stok');
+            $barang->refresh();
+
+            if (in_array($barang->status, ['tersedia', 'dipinjam'])) {
+                $barang->update([
+                    'status' => $barang->stok > 0 ? 'tersedia' : 'dipinjam',
+                ]);
+            }
+        } elseif (in_array($barang->status, ['tersedia', 'dipinjam'])) {
+            $barang->update(['status' => 'dipinjam']);
+        }
     }
 }

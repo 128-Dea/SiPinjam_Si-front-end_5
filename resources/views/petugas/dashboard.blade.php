@@ -42,36 +42,6 @@
             </div>
         </div>
 
-<<<<<<< Updated upstream
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-lg-6 mb-4">
-            <div class="card card-modern h-100">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="fas fa-cogs me-2"></i>Manajemen Barang
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <a href="{{ route('barang.index') }}" class="btn btn-modern btn-primary w-100 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-list me-2"></i>
-                                <span>Lihat Barang</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{{ route('petugas.barang.create') }}" class="btn btn-modern btn-success w-100 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-plus me-2"></i>
-                                <span>Tambah Barang</span>
-                            </a>
-                        </div>
-                        <div class="col-12">
-                            <a href="{{ route('petugas.kategori.index') }}" class="btn btn-modern btn-info w-100 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-tags me-2"></i>
-                                <span>Kelola Kategori</span>
-                            </a>
-=======
         {{-- Barang Tersedia (soft grey/green) --}}
         <div class="col-xl-3 col-md-6">
             <div class="card h-100 border-0 shadow-sm" style="background-color:#EEF2FF;">
@@ -84,7 +54,6 @@
                         <div class="rounded-circle bg-white d-flex align-items-center justify-content-center"
                              style="width:48px;height:48px;">
                             <i class="fas fa-check-circle fa-lg text-success"></i>
->>>>>>> Stashed changes
                         </div>
                     </div>
                 </div>
@@ -106,27 +75,6 @@
                         </div>
                     </div>
                 </div>
-<<<<<<< Updated upstream
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <a href="{{ route('petugas.perpanjangan.index') }}" class="btn btn-modern btn-warning w-100 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-clock me-2"></i>
-                                <span>Perpanjangan</span>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{{ route('petugas.serahterima.index') }}" class="btn btn-modern btn-secondary w-100 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-handshake me-2"></i>
-                                <span>Serah Terima</span>
-                            </a>
-                        </div>
-                        <div class="col-12">
-                            <a href="{{ route('petugas.service.index') }}" class="btn btn-modern btn-dark w-100 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-tools me-2"></i>
-                                <span>Kelola Service</span>
-                            </a>
-=======
             </div>
         </div>
 
@@ -142,7 +90,6 @@
                         <div class="rounded-circle bg-white d-flex align-items-center justify-content-center"
                              style="width:48px;height:48px;">
                             <i class="fas fa-exclamation-triangle fa-lg text-danger"></i>
->>>>>>> Stashed changes
                         </div>
                     </div>
                 </div>
@@ -167,14 +114,14 @@
                             <i class="fas fa-list me-2"></i>
                             Lihat Barang
                         </a>
-                        <a href="{{ route('barang.create') }}"
+                        <a href="{{ route('petugas.barang.create') }}"
                            class="btn btn-outline-primary d-flex align-items-center px-3">
                             <i class="fas fa-plus me-2"></i>
                             Tambah Barang
                         </a>
                     </div>
 
-                    <a href="{{ route('kategori.index') }}" class="small text-primary text-decoration-none">
+                    <a href="{{ route('petugas.kategori.index') }}" class="small text-primary text-decoration-none">
                         <i class="fas fa-tags me-1"></i>Kelola Kategori
                     </a>
                 </div>
@@ -191,19 +138,19 @@
                     <p class="text-muted small mb-3">Kelola perpanjangan dan service barang</p>
 
                     <div class="d-flex flex-wrap gap-2 mb-2">
-                        <a href="{{ route('perpanjangan.index') }}"
+                        <a href="{{ route('petugas.perpanjangan.index') }}"
                            class="btn btn-warning d-flex align-items-center px-3">
                             <i class="fas fa-clock me-2"></i>
                             Perpanjangan
                         </a>
-                        <a href="{{ route('serahterima.index') }}"
+                        <a href="{{ route('petugas.serahterima.index') }}"
                            class="btn btn-outline-secondary d-flex align-items-center px-3">
                             <i class="fas fa-handshake me-2"></i>
                             Serah Terima
                         </a>
                     </div>
 
-                    <a href="{{ route('service.index') }}" class="small text-primary text-decoration-none">
+                    <a href="{{ route('petugas.service.index') }}" class="small text-primary text-decoration-none">
                         <i class="fas fa-tools me-1"></i>Kelola Service
                     </a>
                 </div>

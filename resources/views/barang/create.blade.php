@@ -3,39 +3,9 @@
 @section('content')
 <div class="container-fluid py-4" style="background-color:#f3f4f6;">
 
-<<<<<<< Updated upstream
-<form method="POST" action="{{ route('petugas.barang.store') }}" class="card border-0 shadow-sm" enctype="multipart/form-data">
-    @csrf
-    <div class="card-body">
-        <div class="mb-3">
-            <label class="form-label">Nama Barang</label>
-            <input type="text" name="nama_barang" value="{{ old('nama_barang') }}" class="form-control" required>
-            @error('nama_barang')<small class="text-danger">{{ $message }}</small>@enderror
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Kategori</label>
-            <select name="id_kategori" class="form-select" required>
-                <option value="">-- Pilih --</option>
-                @foreach($kategori as $item)
-                    <option value="{{ $item->id_kategori }}" @selected(old('id_kategori')==$item->id_kategori)>{{ $item->nama_kategori }}</option>
-                @endforeach
-            </select>
-            @error('id_kategori')<small class="text-danger">{{ $message }}</small>@enderror
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Kode Barang</label>
-            <input type="text" class="form-control" value="Akan dibuat otomatis saat disimpan" disabled readonly>
-            <small class="text-muted d-block mt-1">Kode barang digenerate otomatis dengan format BRG-XXXX.</small>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Harga</label>
-                <input type="number" name="harga" value="{{ old('harga') }}" class="form-control" min="0" step="1000">
-                @error('harga')<small class="text-danger">{{ $message }}</small>@enderror
-=======
-    {{-- FORM FULL WIDTH --}}
+    {{-- FORM TAMBAH BARANG --}}
     <form method="POST"
-          action="{{ route('barang.store') }}"
+          action="{{ route('petugas.barang.store') }}"
           class="card border-0 shadow-sm rounded-4 overflow-hidden w-100"
           enctype="multipart/form-data">
         @csrf
@@ -46,8 +16,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="bg-white rounded-circle d-flex align-items-center justify-content-center"
                      style="width:40px;height:40px;">
-                    {{-- bisa isi icon kalau pakai Bootstrap Icons --}}
-                    {{-- <i class="bi bi-box-seam fs-5 text-primary"></i> --}}
+                    {{-- optional icon --}}
                 </div>
                 <div class="text-white">
                     <h5 class="mb-0 fw-semibold">Tambah Barang</h5>
@@ -55,7 +24,6 @@
                         Lengkapi informasi barang inventaris kampus
                     </small>
                 </div>
->>>>>>> Stashed changes
             </div>
 
             <a href="{{ route('barang.index') }}"
@@ -68,7 +36,7 @@
         <div class="card-body p-4" style="background-color:#f5f7fb;">
             <div class="row g-4">
 
-                {{-- NAMA BARANG (tanpa placeholder contoh laptop) --}}
+                {{-- NAMA BARANG --}}
                 <div class="col-md-6">
                     <label class="form-label fw-semibold small text-muted">Nama Barang</label>
                     <input type="text"
