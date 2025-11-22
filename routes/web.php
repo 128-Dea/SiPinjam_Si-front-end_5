@@ -42,7 +42,7 @@ Route::get('/dashboard', function () {
 })->middleware('auth')->name('dashboard');
 
 
-//| Mahasiswa
+// | Mahasiswa
 
 Route::middleware(['auth', 'role:mahasiswa'])
     ->prefix('mahasiswa')
@@ -58,7 +58,7 @@ Route::middleware(['auth', 'role:mahasiswa'])
         Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
         Route::get('/riwayat/{riwayat}', [RiwayatController::class, 'show'])->name('riwayat.show');
 
-        // >>> PENGEMBALIAN: MAHASISWA BISA CREATE & STORE <<<
+        // Pengembalian oleh mahasiswa (create & store)
         Route::resource('pengembalian', PengembalianController::class)->only(['create', 'store']);
     });
 
@@ -71,16 +71,31 @@ Route::middleware(['auth', 'role:petugas'])
     ->group(function () {
         Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('dashboard');
 
+        // Resource barang untuk petugas (tanpa index & show)
         Route::resource('barang', BarangController::class)->except(['index', 'show']);
+
+        // Manajemen stok cepat untuk petugas
+        Route::patch('barang/{barang}/stok/tambah', [BarangController::class, 'stokTambah'])
+            ->name('barang.stok.tambah');
+        Route::patch('barang/{barang}/stok/kurang', [BarangController::class, 'stokKurang'])
+            ->name('barang.stok.kurang');
+
         Route::resource('kategori', KategoriController::class);
-        Route::resource('service', ServiceController::class);
-        Route::resource('denda', DendaController::class);
+
+        // Modul service (petugas.service.*)
+        Route::resource('service', ServiceController::class)->only(['index', 'update']);
+
+        // Denda (sesuai punyamu sekarang)
+        Route::resource('denda', DendaController::class)->except(['create', 'store']);
 
         // Route tambahan untuk proses pengembalian via QR
         Route::get('pengembalian', [PengembalianController::class, 'index'])->name('pengembalian.index');
         Route::get('pengembalian/scan', [PengembalianController::class, 'scanForm'])->name('pengembalian.scan');
         Route::post('pengembalian/scan', [PengembalianController::class, 'handleScan'])->name('pengembalian.handleScan');
+<<<<<<< Updated upstream
         Route::post('pengembalian/{peminjaman}/proses', [PengembalianController::class, 'prosesLengkap'])->name('pengembalian.prosesLengkap');
+=======
+>>>>>>> Stashed changes
         Route::get('pengembalian/{peminjaman}/konfirmasi', [PengembalianController::class, 'konfirmasi'])->name('pengembalian.konfirmasi');
         Route::post('pengembalian/{peminjaman}/tanpa-kerusakan', [PengembalianController::class, 'prosesTanpaKerusakan'])->name('pengembalian.tanpaKerusakan');
         Route::get('pengembalian/{peminjaman}/kerusakan', [PengembalianController::class, 'formKerusakan'])->name('pengembalian.formKerusakan');
@@ -98,7 +113,7 @@ Route::middleware(['auth', 'role:petugas'])
     });
 
 
-//| Barang (read-only untuk semua user login)
+// | Barang (read-only untuk semua user login)
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/barang', [BarangController::class, 'index'])->name('barang.index');

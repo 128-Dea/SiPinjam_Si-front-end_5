@@ -258,7 +258,7 @@ class PengembalianController extends Controller
             $pengembalian = Pengembalian::create([
                 'id_peminjaman'      => $data['id_peminjaman'],
                 'waktu_pengembalian' => $data['waktu_pengembalian'],
-                'catatan'            => $data['catatan'] ?? null,
+                'catatan'            => $data['catatan'] ?? '',
             ]);
 
             // Hitung denda terlambat
@@ -283,7 +283,7 @@ class PengembalianController extends Controller
                     'id_peminjaman'     => $peminjaman->id_peminjaman,
                     'jenis'             => 'pengembalian',
                     'total_denda'       => $totalDenda,
-                    'status_pembayaran' => 'belum_dibayar',
+                    'status_pembayaran' => 'belum',
                     'keterangan'        => 'Denda pengembalian barang',
                 ]);
             }

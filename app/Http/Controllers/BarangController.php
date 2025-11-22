@@ -9,16 +9,43 @@ use Illuminate\Support\Facades\Storage;
 
 class BarangController extends Controller
 {
-    public function index()
+     // Petugas : lihat semua barang + filter status + search
+     // Mahasiswa : hanya barang dengan status_otomatis 'tersedia'
+    public function index(Request $request)
     {
-        // Jika petugas: lihat semua barang
-        if (auth()->check() && auth()->user()->role === 'petugas') {
-            $barang = Barang::with('kategori')->get();
+        $user = auth()->user();
+
+        // Relasi dimuat supaya perhitungan stok otomatis tidak N+1 query
+        $query = Barang::with(['kategori', 'peminjaman', 'service']);
+
+        // Pencarian nama / kode barang
+        if ($search = $request->input('q')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_barang', 'like', '%' . $search . '%')
+                  ->orWhere('kode_barang', 'like', '%' . $search . '%');
+            });
+        }
+
+        // PETUGAS
+        if ($user && $user->role === 'petugas') {
+            $barang = $query->get();
+
+            // Filter status (hanya tersedia, dipinjam, service)
+            $statusFilter = $request->input('status');
+            if ($statusFilter && in_array($statusFilter, ['tersedia', 'dipinjam', 'service'], true)) {
+                $barang = $barang
+                    ->filter(function (Barang $item) use ($statusFilter) {
+                        return $item->status_otomatis === $statusFilter;
+                    })
+                    ->values();
+            }
         } else {
-            // Mahasiswa / user lain / tamu: hanya barang dengan status 'tersedia'
-            $barang = Barang::with('kategori')
-                ->where('status', 'tersedia')
-                ->get();
+            // MAHASISWA / user lain: hanya yang benar-benar tersedia
+            $barang = $query->get()
+                ->filter(function (Barang $item) {
+                    return $item->status_otomatis === 'tersedia';
+                })
+                ->values();
         }
 
         return view('barang.index', compact('barang'));
@@ -37,14 +64,15 @@ class BarangController extends Controller
             'id_kategori' => 'required|exists:kategori,id_kategori',
             'nama_barang' => 'required|string|max:100',
             'kode_barang' => 'nullable|string|max:20|unique:barang,kode_barang',
-            'harga' => 'nullable|numeric|min:0',
-            'stok' => 'required|integer|min:0',
+            'harga'       => 'nullable|numeric|min:0',
+            'stok'        => 'required|integer|min:0',
+            'deskripsi'   => 'nullable|string',
             'foto_barang' => 'nullable|image|max:2048',
         ]);
 
         $data['kode_barang'] = ($data['kode_barang'] ?? null) ?: $this->generateKodeBarang();
-        $data['harga'] = $data['harga'] ?? null;
-        $data['status'] = $data['stok'] > 0 ? 'tersedia' : 'dipinjam';
+        $data['harga']       = $data['harga'] ?? null;
+        $data['status']      = $data['stok'] > 0 ? 'tersedia' : 'habis';
 
         if ($request->hasFile('foto_barang')) {
             $data['foto_path'] = $request->file('foto_barang')->store('barang', 'public');
@@ -57,8 +85,7 @@ class BarangController extends Controller
 
     public function show(Barang $barang)
     {
-        // pastikan relasi kategori ikut dibawa
-        $barang->load('kategori');
+        $barang->load(['kategori', 'peminjaman', 'service']);
 
         return view('barang.show', compact('barang'));
     }
@@ -76,17 +103,21 @@ class BarangController extends Controller
             'id_kategori' => 'required|exists:kategori,id_kategori',
             'nama_barang' => 'required|string|max:100',
             'kode_barang' => 'nullable|string|max:20|unique:barang,kode_barang,' . $barang->id_barang . ',id_barang',
-            'harga' => 'nullable|numeric|min:0',
-            'stok' => 'required|integer|min:0',
+            'harga'       => 'nullable|numeric|min:0',
+            'stok'        => 'required|integer|min:0',
+            'deskripsi'   => 'nullable|string',
             'foto_barang' => 'nullable|image|max:2048',
         ]);
 
-        $data['kode_barang'] = ($data['kode_barang'] ?? null) ?: ($barang->kode_barang ?? $this->generateKodeBarang());
-        $data['harga'] = $data['harga'] ?? $barang->harga;
-        $data['stok'] = $data['stok'] ?? $barang->stok;
+        $data['kode_barang'] = ($data['kode_barang'] ?? null)
+            ?: ($barang->kode_barang ?? $this->generateKodeBarang());
 
-        if (in_array($barang->status, ['tersedia', 'dipinjam'])) {
-            $data['status'] = $data['stok'] > 0 ? 'tersedia' : 'dipinjam';
+        $data['harga'] = $data['harga'] ?? $barang->harga;
+        $data['stok']  = $data['stok'] ?? $barang->stok;
+
+        // Status manual hanya untuk status khusus (rusak/hilang/nonaktif)
+        if (!in_array($barang->status, ['rusak', 'hilang', 'nonaktif'], true)) {
+            $data['status'] = $data['stok'] > 0 ? 'tersedia' : 'habis';
         } else {
             $data['status'] = $barang->status;
         }
@@ -113,6 +144,40 @@ class BarangController extends Controller
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus');
     }
+
+    // ====== MANAJEMEN STOK CEPAT (PETUGAS) ======
+
+    public function stokTambah(Request $request, Barang $barang)
+    {
+        $jumlah = max(1, (int) $request->input('jumlah', 1));
+
+        $barang->stok = (int) $barang->stok + $jumlah;
+
+        if (!in_array($barang->status, ['rusak', 'hilang', 'nonaktif'], true) && $barang->stok > 0) {
+            $barang->status = 'tersedia';
+        }
+
+        $barang->save();
+
+        return back()->with('success', 'Stok barang berhasil ditambah.');
+    }
+
+    public function stokKurang(Request $request, Barang $barang)
+    {
+        $jumlah = max(1, (int) $request->input('jumlah', 1));
+
+        $barang->stok = max(0, (int) $barang->stok - $jumlah);
+
+        if (!in_array($barang->status, ['rusak', 'hilang', 'nonaktif'], true) && $barang->stok === 0) {
+            $barang->status = 'habis';
+        }
+
+        $barang->save();
+
+        return back()->with('success', 'Stok barang berhasil dikurangi.');
+    }
+
+    // ====== HELPER ======
 
     private function generateKodeBarang(): string
     {

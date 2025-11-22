@@ -9,15 +9,24 @@
 @section('content')
 <div class="container-fluid py-4" style="background-color:#F3F4F6; min-height:100vh;">
 
+    @if (session('success'))
+        <div class="alert alert-success border-0 shadow-sm">
+            {{ session('success') }}
+        </div>
+    @endif
+
     @if($isPetugasView)
         {{-- ====== VIEW PETUGAS: TABEL MANAJEMEN BARANG ====== --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <p class="text-muted small mb-1">
-                    Dashboard / <span class="text-dark fw-semibold">Manajemen Barang</span>
+                    Dashboard /
+                    <span class="text-dark fw-semibold">Manajemen Barang</span>
                 </p>
                 <h1 class="h4 mb-1 fw-bold text-dark">Manajemen Barang</h1>
-                <small class="text-muted">Kelola stok dan status barang kampus</small>
+                <small class="text-muted">
+                    Kelola stok, status, dan detail barang inventaris kampus
+                </small>
             </div>
             <a href="{{ route('petugas.barang.create') }}" class="btn btn-primary d-flex align-items-center shadow-sm">
                 <i class="fas fa-plus me-2"></i> Tambah Barang
@@ -26,21 +35,40 @@
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 pb-0">
-                <div class="row g-2 align-items-center">
+                <form method="GET" action="{{ route('barang.index') }}" class="row g-2 align-items-center">
                     <div class="col-md-4">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light border-0">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
                             <input type="text"
+                                   name="q"
                                    class="form-control border-0 shadow-none"
-                                   placeholder="Cari nama / kode (belum terhubung)">
+                                   placeholder="Cari nama / kode barang"
+                                   value="{{ request('q') }}">
                         </div>
                     </div>
-                    <div class="col-md-8 text-md-end small text-muted">
+
+                    <div class="col-md-3">
+                        @php $selectedStatus = request('status'); @endphp
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">Semua status</option>
+                            <option value="tersedia" @selected($selectedStatus === 'tersedia')>Tersedia</option>
+                            <option value="dipinjam" @selected($selectedStatus === 'dipinjam')>Sedang dipinjam</option>
+                            <option value="service"  @selected($selectedStatus === 'service')>Sedang service</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-outline-secondary w-100" type="submit">
+                            Filter
+                        </button>
+                    </div>
+
+                    <div class="col-md-3 text-md-end small text-muted mt-2 mt-md-0">
                         Total barang: <span class="fw-semibold">{{ $barang->count() }}</span>
                     </div>
-                </div>
+                </form>
             </div>
 
             <div class="table-responsive mt-3">
@@ -48,13 +76,14 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width:110px;">Foto</th>
-                            <th>Nama</th>
+                            <th>Nama & Kategori</th>
                             <th>Kode</th>
-                            <th>Kategori</th>
-                            <th class="text-center">Stok</th>
+                            <th class="text-center">Stok Total</th>
+                            <th class="text-center">Dipinjam</th>
+                            <th class="text-center">Service</th>
+                            <th class="text-center">Tersedia</th>
                             <th class="text-center">Status</th>
-                            <th class="text-end">Harga</th>
-                            <th class="text-end" style="width:170px;">Aksi</th>
+                            <th class="text-end" style="width:220px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,47 +104,65 @@
                                     @endif
                                 </td>
 
-                                {{-- NAMA --}}
+                                {{-- NAMA & KATEGORI --}}
                                 <td class="fw-semibold">
                                     {{ $item->nama_barang }}
                                     <div class="small text-muted">
-                                        Kode: {{ $item->kode_barang }}
+                                        {{ $item->kategori->nama_kategori ?? '-' }}
                                     </div>
                                 </td>
 
-                                {{-- KODE (badge kecil) --}}
+                                {{-- KODE --}}
                                 <td>
                                     <span class="badge bg-light text-dark">
                                         {{ $item->kode_barang }}
                                     </span>
                                 </td>
 
-                                {{-- KATEGORI --}}
-                                <td>{{ $item->kategori->nama_kategori ?? '-' }}</td>
-
-                                {{-- STOK --}}
-                                <td class="text-center">{{ $item->stok ?? 0 }}</td>
-
-                                {{-- STATUS --}}
+                                {{-- STOK TOTAL --}}
                                 <td class="text-center">
-                                    @php $status = $item->status ?? 'tersedia'; @endphp
+                                    {{ $item->stok ?? 0 }}
+                                </td>
+
+                                {{-- DIPINJAM --}}
+                                <td class="text-center">
+                                    {{ $item->stok_dipinjam }}
+                                </td>
+
+                                {{-- SERVICE --}}
+                                <td class="text-center">
+                                    {{ $item->stok_service }}
+                                </td>
+
+                                {{-- STOK TERSEDIA --}}
+                                <td class="text-center fw-semibold">
+                                    {{ $item->stok_tersedia }}
+                                </td>
+
+                                {{-- STATUS OTOMATIS --}}
+                                <td class="text-center">
+                                    @php $status = $item->status_otomatis; @endphp
+
                                     @if($status === 'tersedia')
                                         <span class="badge bg-success">Tersedia</span>
                                     @elseif($status === 'dipinjam')
                                         <span class="badge bg-warning text-dark">Sedang Dipinjam</span>
+                                    @elseif($status === 'service')
+                                        <span class="badge bg-info text-dark">Sedang Service</span>
+                                    @elseif($status === 'habis')
+                                        <span class="badge bg-secondary">Stok Habis</span>
                                     @else
                                         <span class="badge bg-danger">{{ ucfirst($status) }}</span>
                                     @endif
                                 </td>
 
-                                {{-- HARGA --}}
-                                <td class="text-end">
-                                    Rp {{ number_format($item->harga ?? 0,0,',','.') }}
-                                </td>
-
                                 {{-- AKSI --}}
                                 <td class="text-end">
-                                    <div class="btn-group btn-group-sm" role="group">
+                                    <div class="btn-group btn-group-sm mb-1" role="group">
+                                        <a href="{{ route('barang.show', $item->id_barang) }}"
+                                           class="btn btn-light border">
+                                            <i class="fas fa-eye me-1"></i> Detail
+                                        </a>
                                         <a href="{{ route('petugas.barang.edit', $item->id_barang) }}"
                                            class="btn btn-light border">
                                             <i class="fas fa-edit me-1"></i> Edit
@@ -132,11 +179,37 @@
                                             </button>
                                         </form>
                                     </div>
+
+                                    {{-- Manajemen stok cepat (+1 / -1) --}}
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <form action="{{ route('petugas.barang.stok.kurang', $item->id_barang) }}"
+                                              method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="jumlah" value="1">
+                                            <button class="btn btn-outline-secondary btn-sm px-2 py-0"
+                                                    type="submit"
+                                                    title="Kurangi stok total 1">
+                                                −
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('petugas.barang.stok.tambah', $item->id_barang) }}"
+                                              method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="jumlah" value="1">
+                                            <button class="btn btn-outline-secondary btn-sm px-2 py-0"
+                                                    type="submit"
+                                                    title="Tambah stok total 1">
+                                                +
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
+                                <td colspan="9" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open me-2"></i>
                                     Belum ada barang.
                                 </td>
@@ -145,6 +218,12 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="card-footer bg-white small text-muted">
+                <strong>Keterangan:</strong>
+                <span class="ms-2">Stok Total = stok di database,</span>
+                <span class="ms-2">Tersedia = stok total − dipinjam − service.</span>
+            </div>
         </div>
 
     @else
@@ -152,7 +231,8 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <p class="text-muted small mb-1">
-                    Dashboard / <span class="text-dark fw-semibold">Barang</span>
+                    Dashboard /
+                    <span class="text-dark fw-semibold">Barang</span>
                 </p>
                 <h1 class="h4 mb-1 fw-bold text-dark">Daftar Barang Tersedia</h1>
                 <small class="text-muted">
@@ -189,21 +269,23 @@
                                     Kode: <span class="fw-semibold">{{ $item->kode_barang }}</span>
                                 </span>
                                 <span class="d-block text-muted">
-                                    Stok: <span class="fw-semibold">{{ $item->stok ?? 0 }}</span>
+                                    Stok tersedia:
+                                    <span class="fw-semibold">{{ $item->stok_tersedia }}</span>
                                 </span>
                                 <span class="d-block">
                                     Status:
-                                    @php
-                                        $statusUser = $item->status ?? 'Tersedia';
-                                        $statusLower = strtolower($statusUser);
-                                    @endphp
+                                    @php $statusUser = $item->status_otomatis; @endphp
 
-                                    @if($statusLower === 'tersedia')
+                                    @if($statusUser === 'tersedia')
                                         <span class="badge bg-success">Tersedia</span>
-                                    @elseif($statusLower === 'dipinjam')
+                                    @elseif($statusUser === 'dipinjam')
                                         <span class="badge bg-warning text-dark">Sedang Dipinjam</span>
+                                    @elseif($statusUser === 'service')
+                                        <span class="badge bg-info text-dark">Sedang Service</span>
+                                    @elseif($statusUser === 'habis')
+                                        <span class="badge bg-secondary">Stok Habis</span>
                                     @else
-                                        <span class="badge bg-danger">{{ $statusUser }}</span>
+                                        <span class="badge bg-danger">{{ ucfirst($statusUser) }}</span>
                                     @endif
                                 </span>
                             </p>

@@ -760,6 +760,9 @@
                         <button class="btn btn-link text-decoration-none me-3 d-md-none" id="sidebar-toggle">
                             <i class="fas fa-bars fa-lg"></i>
                         </button>
+                        <button class="btn btn-link text-decoration-none me-3" onclick="history.back()" title="Kembali">
+                            <i class="fas fa-arrow-left fa-lg"></i>
+                        </button>
                         <h4 class="mb-0 fw-bold text-primary">
                             @yield('page-title', 'Dashboard')
                         </h4>
