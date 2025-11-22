@@ -11,7 +11,11 @@ class RiwayatController extends Controller
 {
     public function index()
     {
-        $riwayat = Riwayat::with(['pengembalian.peminjaman.pengguna', 'pengembalian.peminjaman.barang'])->orderByDesc('id_riwayat')->get();
+        $riwayat = Riwayat::with([
+                'pengembalian.peminjaman.pengguna',
+                'pengembalian.peminjaman.barang',
+                'pengembalian.peminjaman.denda',
+            ])->orderByDesc('id_riwayat')->get();
 
         return view('riwayat.index', compact('riwayat'));
     }

@@ -235,6 +235,41 @@
             padding: 2rem;
         }
 
+        /* Contact footer for mahasiswa */
+        .contact-footer {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .contact-footer h6 {
+            font-weight: 700;
+        }
+
+        .contact-footer .contact-card {
+            border: none;
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        body.sipkam-dark .contact-footer {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(34, 197, 94, 0.12));
+            border-color: rgba(99, 102, 241, 0.35);
+            color: #e5e7eb;
+        }
+
+        body.sipkam-dark .contact-footer .contact-card {
+            background: #0b1224;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #e5e7eb;
+        }
+
+        body.sipkam-dark .contact-footer .text-muted {
+            color: #cbd5e1 !important;
+        }
+
         /* Modern Buttons */
         .btn-modern {
             border-radius: var(--border-radius);
@@ -955,6 +990,43 @@
                 @endif
 
                 @yield('content')
+
+                {{-- Contact footer for mahasiswa views --}}
+                <footer class="contact-footer mt-5">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+                        <div>
+                            <h6 class="mb-1">Butuh bantuan petugas?</h6>
+                            <p class="mb-0 text-muted">Hubungi tim SIPKAM kapan saja jika ada kendala peminjaman.</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success bg-opacity-75 text-white"><i class="fas fa-circle me-1"></i>Aktif</span>
+                            <small class="text-muted">Respons cepat pada jam kerja</small>
+                        </div>
+                    </div>
+
+                    @php
+                        $contactList = [
+                            ['nama' => 'Call Center SIPKAM', 'nomor' => '0812-3456-7890', 'ikon' => 'fa-headset', 'warna' => 'primary'],
+                            ['nama' => 'Email SIPKAM', 'nomor' => 'SIPKAM@admin.ac.id', 'ikon' => 'fa-envelope', 'warna' => 'success'],
+                        ];
+                    @endphp
+
+                    <div class="row g-3">
+                        @foreach($contactList as $contact)
+                            <div class="col-md-4">
+                                <div class="contact-card d-flex align-items-center gap-3 h-100">
+                                    <div class="rounded-circle bg-{{ $contact['warna'] }} bg-opacity-10 text-{{ $contact['warna'] }} d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                                        <i class="fas {{ $contact['ikon'] }}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ $contact['nama'] }}</div>
+                                        <div class="text-muted">{{ $contact['nomor'] }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </footer>
             </main>
         </div>
     @endif
